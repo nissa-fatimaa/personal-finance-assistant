@@ -3,8 +3,8 @@
 An intelligent assistant for individual users: budgeting, bill analysis, spending insights and actionable recommendations. FinTechathon 2026, Topic A.
 
 - **Repository:** `https://github.com/nissa-fatimaa/personal-finance-assistant`
-- **Live demo:** `<add your Render URL>` (free tier: first load after 15 idle minutes takes about a minute)
-- **Documents:** `docs/Security_Self_Assessment_Report.docx` (add the final Technical Documentation to `docs/` too). Test evidence: [`evidence/README.md`](evidence/README.md).
+- **Live demo:** `https://personal-finance-assistant-tpb6.onrender.com` (free tier: first load after 15 idle minutes takes about a minute)
+- **Documents:** `docs/Security_Self_Assessment_Report.docx`, `add technical doc`. Test evidence: [`evidence/README.md`](evidence/README.md).
 
 ## What it does
 

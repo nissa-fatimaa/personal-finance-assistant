@@ -4,7 +4,8 @@ An intelligent assistant for individual users: budgeting, bill analysis, spendin
 
 - **Repository:** `https://github.com/nissa-fatimaa/personal-finance-assistant`
 - **Live demo:** `https://personal-finance-assistant-tpb6.onrender.com` (free tier: first load after 15 idle minutes takes about a minute)
-- **Documents:** `docs/Security_Self_Assessment_Report.docx`, `docs/Technical_Documentation.docx`. Test evidence: [`evidence/README.md`](evidence/README.md).
+- **Documents:** `docs/Security_Self_Assessment_Report.docx`, `docs/Technical_Documentation.docx` (also attached with email sent). Test evidence: [`evidence/README.md`](evidence/README.md).
+- **Presentation video:** `https://drive.google.com/file/d/1BgYJDAkw0ed7op1nIYnsiTrIwqOxGfDt/view?usp=drivesdk`
 
 ## What it does
 

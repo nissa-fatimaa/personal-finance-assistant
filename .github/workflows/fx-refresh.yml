@@ -26,7 +26,7 @@ jobs:
       - name: Skip when not configured
         if: env.DATABASE_URL_FX == ''
         run: echo "Add the DATABASE_URL_FX repository secret to enable this job."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.DATABASE_URL_FX != ''
       - uses: actions/setup-python@v5
         if: env.DATABASE_URL_FX != ''

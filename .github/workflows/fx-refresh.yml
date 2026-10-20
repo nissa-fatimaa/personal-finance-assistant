@@ -28,7 +28,7 @@ jobs:
         run: echo "Add the DATABASE_URL_FX repository secret to enable this job."
       - uses: actions/checkout@v4
         if: env.DATABASE_URL_FX != ''
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         if: env.DATABASE_URL_FX != ''
         with:
           python-version: "3.12"

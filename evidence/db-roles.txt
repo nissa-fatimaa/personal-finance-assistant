@@ -1,0 +1,7 @@
+role | superuser | bypass_rls
+app_service | False | False
+audit_reader | False | False
+auth_service | False | False
+fx_writer | False | False
+migration_owner | False | False
+stats_reader | False | False

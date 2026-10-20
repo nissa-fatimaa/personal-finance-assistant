@@ -1,0 +1,54 @@
+# Render Blueprint: free Docker web service. The database lives on Neon (free,
+# no expiry); Render's free Postgres is deleted after 30 days. See README §2.
+services:
+  - type: web
+    name: finwise
+    runtime: docker
+    plan: free
+    region: singapore        # closest Render region to Pakistan
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health # fails (503) when the database is unreachable
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_TIMEZONE
+        value: Asia/Karachi
+      # Migrations run from GitHub Actions (.github/workflows/migrate.yml) so the
+      # web service never holds the migration_owner password.
+      - key: RUN_MIGRATIONS
+        value: "false"
+      # Client IP for rate limits: Render's edge sets CF-Connecting-IP; fall back
+      # to the last X-Forwarded-For hop added by Render's proxy.
+      - key: CLIENT_IP_HEADER
+        value: CF-Connecting-IP
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+      - key: FORWARDED_ALLOW_IPS
+        value: "*"
+      # Render free blocks SMTP; Brevo sends over HTTPS.
+      - key: EMAIL_MODE
+        value: brevo
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_FROM
+        sync: false
+      - key: MASTER_SECRET
+        sync: false
+      - key: DATABASE_URL_APP
+        sync: false
+      - key: DATABASE_URL_AUTH
+        sync: false
+      - key: DATABASE_URL_STATS
+        sync: false
+      - key: DATABASE_URL_AUDIT
+        sync: false
+      # Password-less on purpose: satisfies config, cannot authenticate.
+      - key: DATABASE_URL_MIGRATE
+        sync: false
+      - key: LLM_BASE_URL
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        sync: false

@@ -1,0 +1,115 @@
+# Full local stack:  cp .env.example .env  (fill in secrets)  then  docker compose up --build
+# Open http://localhost:8000
+#
+# Least-privilege layout (each container gets only the credential it needs):
+#   db         PostgreSQL 16; db/init-roles.sh creates the 6 roles on first start
+#   migrate    one-shot job; the ONLY holder of the migration_owner password
+#   app        API + UI as app_service / auth_service / stats_reader / audit_reader
+#   fx         sidecar; the ONLY holder of the fx_writer password (refreshes rates)
+
+x-app-urls: &app-urls
+  DATABASE_URL_APP: postgresql://app_service:${APP_SERVICE_PASSWORD:?set in .env}@db:5432/${PFA_DB_NAME:-pfa}
+  DATABASE_URL_AUTH: postgresql://auth_service:${AUTH_SERVICE_PASSWORD:?set in .env}@db:5432/${PFA_DB_NAME:-pfa}
+  DATABASE_URL_STATS: postgresql://stats_reader:${STATS_READER_PASSWORD:?set in .env}@db:5432/${PFA_DB_NAME:-pfa}
+  DATABASE_URL_AUDIT: postgresql://audit_reader:${AUDIT_READER_PASSWORD:?set in .env}@db:5432/${PFA_DB_NAME:-pfa}
+
+# Config validation requires every URL to name its role; containers that must not
+# hold a credential get the password-less form below (it can never authenticate).
+x-no-secret-urls: &no-secret-urls
+  DATABASE_URL_APP: postgresql://app_service@db:5432/${PFA_DB_NAME:-pfa}
+  DATABASE_URL_AUTH: postgresql://auth_service@db:5432/${PFA_DB_NAME:-pfa}
+  DATABASE_URL_STATS: postgresql://stats_reader@db:5432/${PFA_DB_NAME:-pfa}
+  DATABASE_URL_AUDIT: postgresql://audit_reader@db:5432/${PFA_DB_NAME:-pfa}
+  DATABASE_URL_MIGRATE: postgresql://migration_owner@db:5432/${PFA_DB_NAME:-pfa}
+
+x-app-env: &app-env
+  MASTER_SECRET: ${MASTER_SECRET:?set in .env}
+  KEK_SECRET: ${KEK_SECRET:-}
+  APP_ENV: ${APP_ENV:-development}
+  APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Karachi}
+  EMAIL_MODE: ${EMAIL_MODE:-dev_outbox}
+  PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8000}
+  COOKIE_SECURE: ${COOKIE_SECURE:-}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  RESEND_FROM: ${RESEND_FROM:-}
+  BREVO_API_KEY: ${BREVO_API_KEY:-}
+  BREVO_FROM: ${BREVO_FROM:-}
+  LLM_BASE_URL: ${LLM_BASE_URL:-}
+  LLM_API_KEY: ${LLM_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-}
+
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?set in .env}
+      PFA_DB_NAME: ${PFA_DB_NAME:-pfa}
+      MIGRATION_OWNER_PASSWORD: ${MIGRATION_OWNER_PASSWORD:?set in .env}
+      APP_SERVICE_PASSWORD: ${APP_SERVICE_PASSWORD}
+      AUTH_SERVICE_PASSWORD: ${AUTH_SERVICE_PASSWORD}
+      STATS_READER_PASSWORD: ${STATS_READER_PASSWORD}
+      AUDIT_READER_PASSWORD: ${AUDIT_READER_PASSWORD}
+      FX_WRITER_PASSWORD: ${FX_WRITER_PASSWORD:?set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${PFA_DB_NAME:-pfa}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Not published to the host. For local psql access: ports: ["127.0.0.1:5432:5432"]
+
+  migrate:
+    build: .
+    image: personal-finance-assistant:latest
+    command: ["migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: [*app-urls, *app-env]
+      DATABASE_URL_MIGRATE: postgresql://migration_owner:${MIGRATION_OWNER_PASSWORD}@db:5432/${PFA_DB_NAME:-pfa}
+    restart: "no"
+
+  app:
+    image: personal-finance-assistant:latest
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: [*app-urls, *app-env]
+      DATABASE_URL_MIGRATE: postgresql://migration_owner@db:5432/${PFA_DB_NAME:-pfa}
+      RUN_MIGRATIONS: "false"
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
+      CLIENT_IP_HEADER: ${CLIENT_IP_HEADER:-}
+      TRUSTED_PROXY_HOPS: ${TRUSTED_PROXY_HOPS:-0}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+
+  fx:
+    image: personal-finance-assistant:latest
+    command: ["fx-loop"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: [*no-secret-urls]
+      MASTER_SECRET: ${MASTER_SECRET}
+      # Never serves HTTP or sends email, so it runs without email settings.
+      APP_ENV: development
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Karachi}
+      DATABASE_URL_FX: postgresql://fx_writer:${FX_WRITER_PASSWORD}@db:5432/${PFA_DB_NAME:-pfa}
+    healthcheck:
+      disable: true
+
+volumes:
+  pgdata: {}

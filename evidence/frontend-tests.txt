@@ -1,0 +1,60 @@
+$ npx vitest run --config frontend/vite.config.ts --reporter=verbose
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90mfrontend[39m
+
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mopens the reset-email route and reads the token from its fragment[32m 70[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mkeeps password-change success visible after the asynchronous request[32m 23[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mrenders a dashboard empty state using API data only[32m 28[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mshows a chat transaction draft with explicit confirmation actions[32m 20[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mrequires an undetected receipt date to be chosen and saved before confirmation[32m 24[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22moffers receipt review while keeping transaction chat visible offline[32m 21[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mkeeps the admin view to operational counts with no financial detail[32m 17[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mshows the server's rate-limit message on sign in without navigating[32m 18[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mrequires privacy consent and sends registration fields without AI consent by default[32m 20[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mshows an MFA failure without leaking which factor failed[32m 12[2mms[22m[39m
+ [32m✓[39m src/App.test.tsx[2m > [22mFinwise key views[2m > [22mkeeps staff out of personal-finance pages[32m 13[2mms[22m[39m
+ [32m✓[39m src/panels.test.tsx[2m > [22mMFA enrolment QR[2m > [22mrenders a local QR image and the manual key[32m 185[2mms[22m[39m
+ [32m✓[39m src/panels.test.tsx[2m > [22mAccountsPanel[2m > [22mlists accounts and adds a new one[32m 49[2mms[22m[39m
+ [32m✓[39m src/panels.test.tsx[2m > [22mAccountsPanel[2m > [22mshows the server error when listing fails[32m 13[2mms[22m[39m
+ [32m✓[39m src/panels.test.tsx[2m > [22mMfaDisablePanel[2m > [22mrequires password and code, then reports success[32m 12[2mms[22m[39m
+ [32m✓[39m src/panels.test.tsx[2m > [22mStaffUsersPanel[2m > [22mis read-only for admin[32m 7[2mms[22m[39m
+ [32m✓[39m src/panels.test.tsx[2m > [22mStaffUsersPanel[2m > [22mlets a security owner lock after confirmation and change roles with re-auth[32m 37[2mms[22m[39m
+ [32m✓[39m src/panels.test.tsx[2m > [22mStaffUsersPanel[2m > [22mdoes nothing when the operator cancels[32m 8[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mparses 850 PKR[32m 2[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mparses 850.5 PKR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mparses 850.05 PKR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mparses 0.01 USD[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mparses   12.30   EUR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mparses 1500 JPY[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mavoids binary floating-point error[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects "12.345" for USD[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects "12.5" for JPY[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects "-5" for PKR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects "1,000" for PKR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects "1e3" for PKR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects "" for PKR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects "abc" for PKR[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects ".5" for USD[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mamountToMinor (string -> integer minor units, no floats)[2m > [22mrejects values beyond the safe integer range instead of losing precision[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mformatMoney[2m > [22mformats with grouping and the currency exponent[32m 12[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mformatMoney[2m > [22muses a real minus sign for negatives[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mformatMoney[2m > [22mnever shows an invented number for missing or unsafe values[32m 0[2mms[22m[39m
+ [32m✓[39m src/money.test.ts[2m > [22mformatMoney[2m > [22mknows every supported exponent[32m 0[2mms[22m[39m
+ [32m✓[39m src/api.test.ts[2m > [22mapi client security behaviour[2m > [22msends the CSRF header and JSON type on state changes only[32m 3[2mms[22m[39m
+ [32m✓[39m src/api.test.ts[2m > [22mapi client security behaviour[2m > [22msurfaces server detail and status, including rate limiting[32m 2[2mms[22m[39m
+ [32m✓[39m src/api.test.ts[2m > [22mapi client security behaviour[2m > [22mmaps network failures to a friendly status-0 error[32m 1[2mms[22m[39m
+ [32m✓[39m src/api.test.ts[2m > [22mapi client security behaviour[2m > [22mkeeps a generic message when the error body is not JSON[32m 1[2mms[22m[39m
+ [32m✓[39m src/api.test.ts[2m > [22mapi client security behaviour[2m > [22mreturns undefined for 204 and encodes path segments[32m 1[2mms[22m[39m
+ [32m✓[39m src/api.test.ts[2m > [22mapi client security behaviour[2m > [22msends role changes with re-authentication fields via PUT[32m 0[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m44 passed[39m[22m[90m (44)[39m
+[2m   Start at [22m 09:40:15
+[2m   Duration [22m 3.21s[2m (environment 54%, tests 22%, setup 16%, import 6%, transform 1%, worker 1%)[22m
+
+[2m    Isolate [22m [33m4 workers spawned[39m[2m · ~478ms startup each (spawn + environment, per file)[22m
+[2m            [22m [2mat least ~1.43s faster with [22m[33misolate: false[39m[2m — reuses workers across files instead of one per file[22m
+
+
+exit code: 0

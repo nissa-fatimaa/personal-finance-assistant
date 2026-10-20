@@ -1,0 +1,5 @@
+$ python -m alembic current
+
+0004_shared_limits_and_fx_writer (head)
+
+exit code: 0

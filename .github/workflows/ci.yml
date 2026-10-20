@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend tests (real PostgreSQL, least-privilege roles)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-superuser-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: ci-superuser-only
+      MIGRATION_OWNER_PASSWORD: ci-mig-0f4c2a9d1b7e
+      APP_SERVICE_PASSWORD: ci-app-8e1d3c5b7a90
+      AUTH_SERVICE_PASSWORD: ci-auth-2b4d6f8a0c1e
+      STATS_READER_PASSWORD: ci-stats-9a7c5e3b1d2f
+      AUDIT_READER_PASSWORD: ci-audit-4e6a8c0b2d1f
+      FX_WRITER_PASSWORD: ci-fx-7d5b3f1a9c2e
+      DATABASE_URL_MIGRATE: postgresql://migration_owner:ci-mig-0f4c2a9d1b7e@localhost:5432/pfa
+      DATABASE_URL_APP: postgresql://app_service:ci-app-8e1d3c5b7a90@localhost:5432/pfa
+      DATABASE_URL_AUTH: postgresql://auth_service:ci-auth-2b4d6f8a0c1e@localhost:5432/pfa
+      DATABASE_URL_STATS: postgresql://stats_reader:ci-stats-9a7c5e3b1d2f@localhost:5432/pfa
+      DATABASE_URL_AUDIT: postgresql://audit_reader:ci-audit-4e6a8c0b2d1f@localhost:5432/pfa
+      DATABASE_URL_FX: postgresql://fx_writer:ci-fx-7d5b3f1a9c2e@localhost:5432/pfa
+      APP_ENV: development
+      EMAIL_MODE: dev_outbox
+      PUBLIC_APP_URL: http://localhost:8000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: OCR tools used by receipt tests
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr poppler-utils
+      - run: pip install -r requirements.txt
+      - name: Throwaway master secret for this run
+        run: echo "MASTER_SECRET=$(python -c 'import secrets,base64;print(base64.b64encode(secrets.token_bytes(32)).decode())')" >> "$GITHUB_ENV"
+      - name: Create the six database roles
+        run: ./db/init-roles.sh
+      - name: Migrate as migration_owner
+        run: alembic upgrade head
+      - name: Roles are not superuser and cannot bypass RLS
+        run: |
+          psql -d pfa -tAc "SELECT rolname FROM pg_roles WHERE rolname IN ('migration_owner','app_service','auth_service','stats_reader','audit_reader','fx_writer') AND (rolsuper OR rolbypassrls)" | tee unsafe.txt
+          test ! -s unsafe.txt
+      - name: Test suite
+        run: pytest -q --junitxml=junit.xml
+      - name: Audit chain intact after the suite
+        run: python -m scripts.verify_audit_chain
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-junit
+          path: junit.xml
+
+  frontend:
+    name: Frontend typecheck, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  docker:
+    name: Docker Compose smoke test
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate a throwaway .env
+        run: |
+          gen() { openssl rand -hex 24; }
+          key() { python3 -c 'import secrets,base64;print(base64.b64encode(secrets.token_bytes(32)).decode())'; }
+          cat > .env <<ENV
+          POSTGRES_SUPERUSER_PASSWORD=$(gen)
+          MIGRATION_OWNER_PASSWORD=$(gen)
+          APP_SERVICE_PASSWORD=$(gen)
+          AUTH_SERVICE_PASSWORD=$(gen)
+          STATS_READER_PASSWORD=$(gen)
+          AUDIT_READER_PASSWORD=$(gen)
+          FX_WRITER_PASSWORD=$(gen)
+          MASTER_SECRET=$(key)
+          ENV
+      - run: docker compose up -d --build
+      - name: Wait for /health (includes a database round-trip)
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8000/health; then exit 0; fi
+            sleep 3
+          done
+          docker compose logs
+          exit 1
+      - name: UI is served and state changes require the CSRF header
+        run: |
+          curl -fsS http://localhost:8000/ | grep -q '<div id="root">'
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' http://localhost:8000/auth/login)
+          test "$code" = "403"
+      - run: docker compose run --rm app verify-audit
+      - if: always()
+        run: docker compose down -v

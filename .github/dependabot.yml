@@ -1,0 +1,15 @@
+# Weekly dependency and base-image update PRs; CI must pass before merging.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: "/"
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: "/"
+    schedule: { interval: weekly }

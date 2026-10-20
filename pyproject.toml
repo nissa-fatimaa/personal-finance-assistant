@@ -1,0 +1,20 @@
+[project]
+name = "personal-finance-assistant"
+version = "0.1.0"
+description = "Secure personal finance assistant backend"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.13,<2",
+    "argon2-cffi>=25.1.0",
+    "cryptography>=43,<51",
+    "fastapi>=0.148.0",
+    "httpx>=0.28.1",
+    "psycopg[binary]>=3.2,<4",
+    "pydantic-settings>=2,<3",
+    "pyotp>=2.10.0",
+    "pypdf>=6.21.1",
+    "pytest>=8,<10",
+    "sqlalchemy>=2.0,<3",
+    "uvicorn>=0.54.0",
+    "zxcvbn>=4.5.0",
+]

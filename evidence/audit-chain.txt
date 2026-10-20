@@ -1,0 +1,5 @@
+$ python -m scripts.verify_audit_chain
+
+audit chain: INTACT
+
+exit code: 0

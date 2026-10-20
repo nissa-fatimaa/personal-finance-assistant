@@ -1,0 +1,32 @@
+name: Migrate production database
+
+# Run manually after merging a migration. Only this job holds the
+# migration_owner password (GitHub secret); the web service never does.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+      DATABASE_URL_APP: postgresql://app_service@unused/pfa
+      DATABASE_URL_AUTH: postgresql://auth_service@unused/pfa
+      DATABASE_URL_STATS: postgresql://stats_reader@unused/pfa
+      DATABASE_URL_AUDIT: postgresql://audit_reader@unused/pfa
+      APP_ENV: development
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: |
+          export MASTER_SECRET=$(python -c 'import secrets,base64;print(base64.b64encode(secrets.token_bytes(32)).decode())')
+          alembic upgrade head
+          alembic current

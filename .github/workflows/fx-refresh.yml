@@ -1,0 +1,41 @@
+name: FX refresh
+
+# Stores the daily exchange-rate snapshot using ONLY the fx_writer credential,
+# so the public web service can run with read-only access to rates.
+on:
+  schedule:
+    - cron: "15 0 * * *"   # 05:15 Pakistan time
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL_FX: ${{ secrets.DATABASE_URL_FX }}
+      # Password-less placeholders: required by config validation, never used.
+      DATABASE_URL_MIGRATE: postgresql://migration_owner@unused/pfa
+      DATABASE_URL_APP: postgresql://app_service@unused/pfa
+      DATABASE_URL_AUTH: postgresql://auth_service@unused/pfa
+      DATABASE_URL_STATS: postgresql://stats_reader@unused/pfa
+      DATABASE_URL_AUDIT: postgresql://audit_reader@unused/pfa
+      APP_ENV: development
+    steps:
+      - name: Skip when not configured
+        if: env.DATABASE_URL_FX == ''
+        run: echo "Add the DATABASE_URL_FX repository secret to enable this job."
+      - uses: actions/checkout@v4
+        if: env.DATABASE_URL_FX != ''
+      - uses: actions/setup-python@v5
+        if: env.DATABASE_URL_FX != ''
+        with:
+          python-version: "3.12"
+          cache: pip
+      - if: env.DATABASE_URL_FX != ''
+        run: pip install -r requirements.txt
+      - if: env.DATABASE_URL_FX != ''
+        run: |
+          export MASTER_SECRET=$(python -c 'import secrets,base64;print(base64.b64encode(secrets.token_bytes(32)).decode())')
+          python -m scripts.refresh_fx

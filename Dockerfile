@@ -6,7 +6,7 @@
 ############################
 # Stage 1: frontend build  #
 ############################
-FROM node:22-bookworm-slim AS frontend
+FROM node:26-bookworm-slim AS frontend
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund

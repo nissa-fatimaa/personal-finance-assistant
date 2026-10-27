@@ -78,7 +78,7 @@ pytest==9.1.1
     # via personal-finance-assistant
 python-dotenv==1.2.4
     # via pydantic-settings
-sqlalchemy==2.1.5
+sqlalchemy==2.1.6
     # via
     #   alembic
     #   personal-finance-assistant

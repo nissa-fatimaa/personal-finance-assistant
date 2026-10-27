@@ -72,7 +72,7 @@ pygments==2.21.0
     # via pytest
 pyotp==2.10.0
     # via personal-finance-assistant
-pypdf==6.21.1
+pypdf==6.21.2
     # via personal-finance-assistant
 pytest==9.1.1
     # via personal-finance-assistant
